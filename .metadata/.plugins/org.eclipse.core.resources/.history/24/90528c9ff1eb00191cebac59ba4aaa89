@@ -1,0 +1,82 @@
+package com.sgic.controller;
+
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.sgic.entity.Project;
+import com.sgic.exception.ResourceNotFoundException;
+import com.sgic.repository.ProjectRepository;
+
+@CrossOrigin(origins = "http://localhost:3001")
+@RestController
+@RequestMapping("/api/v1")
+public class ProjectController {
+	@Autowired
+	ProjectRepository projectRepository;
+
+	@PostMapping(value = "/project")
+	public ResponseEntity<?> createProject(@RequestBody Project project) {
+		projectRepository.save(project);
+		return new ResponseEntity<Object>(HttpStatus.OK);
+	}
+
+	@GetMapping(value="/project/{projectId}")
+	public ResponseEntity<Project> getProjectById(@PathVariable("projectId") Long id){
+		return new ResponseEntity<Project>(this.findById(id), HttpStatus.OK);
+	}
+
+	@GetMapping("/project")
+	public List<Project> getProject() {
+		return projectRepository.findAll();
+
+	}
+
+	/*
+	 * @PutMapping("/project/{projectId}") public Project
+	 * updateProject(@PathVariable Long projectId, @Valid @RequestBody Project
+	 * projectRequest) { return projectRepository.findById(projectId).map(project ->
+	 * { project.setProjectName(projectRequest.getProjectName());
+	 * project.setProjectDescription(projectRequest.getProjectDescription()); return
+	 * projectRepository.save(project); }).orElseThrow(() -> new
+	 * ResourceNotFoundException("ProjectId " + projectId + " not found")); }
+	 */
+
+	@PutMapping("/project/{projectId}")
+	public void updateProject(@Valid @RequestBody Project project) {
+		projectRepository.save(project);
+	}
+
+//	@DeleteMapping("/project/{projectId}")
+//	public void deleteProject(@PathVariable Long project) {
+//
+//		projectRepository.deleteById(project);
+//
+//	}
+	
+	@DeleteMapping("/project/{projectId}")
+	public ResponseEntity<?> deleteProject(@PathVariable Long projectId){
+		return projectRepository.findById(projectId).map(req -> {
+			projectRepository.delete(req);
+			return ResponseEntity.ok().build();
+		}).orElseThrow(() -> new ResourceNotFoundException("projectId " + projectId + " not found"));
+	}
+	
+	public Project findById(Long id) {
+		return projectRepository.findProjectById(id);
+	}
+
+}
